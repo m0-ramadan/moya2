@@ -916,6 +916,17 @@ export default function OrderDetailsPage() {
     );
   };
 
+  const callDriver = () => {
+    const phoneNumber = getDriverWhatsappNumber();
+
+    if (!phoneNumber) {
+      toast.error("رقم السائق غير متوفر");
+      return;
+    }
+
+    window.location.href = `tel:+${phoneNumber}`;
+  };
+
   // Function to navigate to driver profile page
   const navigateToDriverProfile = () => {
     if (orderData?.driver?.id) {
@@ -1795,29 +1806,37 @@ export default function OrderDetailsPage() {
                     )}
 
                     {isProcessing && orderData.driver && (
-                      <div className="space-y-2 sm:space-y-3">
+                      <div className="grid grid-cols-2 gap-2 sm:gap-3">
                         <button
                           onClick={openChat}
-                          className="w-full py-2 sm:py-3 rounded-xl text-white font-bold text-sm sm:text-base transition-all hover:scale-[1.02] active:scale-95 bg-gradient-to-r from-[#3B82F6] to-[#1D4ED8] shadow-lg hover:shadow-xl"
+                          className="w-full min-h-12 py-2 sm:py-3 px-2 rounded-xl text-white font-bold text-xs sm:text-sm transition-all hover:scale-[1.02] active:scale-95 bg-gradient-to-r from-[#3B82F6] to-[#1D4ED8] shadow-lg hover:shadow-xl flex items-center justify-center gap-2"
                         >
-                          <FaCommentDots className="w-4 h-4 sm:w-5 sm:h-5 inline ml-1 sm:ml-2" />
-                          محادثة مع السائق
+                          <FaCommentDots className="w-4 h-4 sm:w-5 sm:h-5 flex-shrink-0" />
+                          <span>محادثة السائق</span>
                         </button>
 
                         <button
                           onClick={openWhatsappChat}
-                          className="w-full py-2 sm:py-3 rounded-xl text-white font-bold text-sm sm:text-base transition-all hover:scale-[1.02] active:scale-95 bg-gradient-to-r from-[#25D366] to-[#128C7E] shadow-lg hover:shadow-xl flex items-center justify-center gap-2"
+                          className="w-full min-h-12 py-2 sm:py-3 px-2 rounded-xl text-white font-bold text-xs sm:text-sm transition-all hover:scale-[1.02] active:scale-95 bg-gradient-to-r from-[#25D366] to-[#128C7E] shadow-lg hover:shadow-xl flex items-center justify-center gap-2"
                         >
-                          <FaWhatsapp className="w-4 h-4 sm:w-5 sm:h-5" />
-                          <span>واتساب السائق</span>
+                          <FaWhatsapp className="w-4 h-4 sm:w-5 sm:h-5 flex-shrink-0" />
+                          <span>واتساب</span>
+                        </button>
+
+                        <button
+                          onClick={callDriver}
+                          className="w-full min-h-12 py-2 sm:py-3 px-2 rounded-xl text-white font-bold text-xs sm:text-sm transition-all hover:scale-[1.02] active:scale-95 bg-gradient-to-r from-emerald-500 to-green-600 shadow-lg hover:shadow-xl flex items-center justify-center gap-2"
+                        >
+                          <FaPhoneAlt className="w-4 h-4 sm:w-5 sm:h-5 flex-shrink-0" />
+                          <span>اتصال</span>
                         </button>
 
                         <button
                           onClick={navigateToDriverProfile}
-                          className="w-full py-2 sm:py-3 rounded-xl text-[#3B82F6] font-bold text-sm sm:text-base transition-all hover:scale-[1.02] bg-gradient-to-r from-blue-50 to-blue-100 border border-blue-200 shadow hover:shadow-md flex items-center justify-center gap-2"
+                          className="w-full min-h-12 py-2 sm:py-3 px-2 rounded-xl text-[#3B82F6] font-bold text-xs sm:text-sm transition-all hover:scale-[1.02] bg-gradient-to-r from-blue-50 to-blue-100 border border-blue-200 shadow hover:shadow-md flex items-center justify-center gap-2"
                         >
-                          <FaUser className="w-4 h-4 sm:w-5 sm:h-5" />
-                          <span> الملف الشخصي </span>
+                          <FaUser className="w-4 h-4 sm:w-5 sm:h-5 flex-shrink-0" />
+                          <span>الملف الشخصي</span>
                         </button>
                       </div>
                     )}
