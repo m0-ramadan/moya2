@@ -17,6 +17,7 @@ import {
 
 // ثابت معرف الدعم الفني القديم كـ fallback
 const SUPPORT_ID = 316;
+const STORAGE_BASE_URL = 'https://dashboard.waytmiah.com/storage';
 
 const ChatModal = ({ 
   isOpen, 
@@ -560,21 +561,76 @@ const playAudioWithIframe = (messageId, url, token) => {
     );
   }, [supportParticipantId]);
 
+  const getOtherParticipantId = useCallback((chat) => {
+    const otherParticipants = chat.participants?.filter(p => {
+      const currentSupportId = supportParticipantId || SUPPORT_ID;
+      return String(p) !== String(currentUser.id) && String(p) !== String(currentSupportId);
+    }) || [];
+
+    return otherParticipants[0] || null;
+  }, [currentUser.id, supportParticipantId]);
+
+  const normalizeAvatarUrl = useCallback((avatar) => {
+    if (!avatar || typeof avatar !== 'string') return '';
+
+    if (/^https?:\/\//i.test(avatar)) {
+      return avatar;
+    }
+
+    const cleanAvatar = avatar.replace(/^\/+/, '');
+    if (cleanAvatar.startsWith('storage/')) {
+      return `https://dashboard.waytmiah.com/${cleanAvatar}`;
+    }
+
+    return `${STORAGE_BASE_URL}/${cleanAvatar}`;
+  }, []);
+
+  const getChatParticipantProfile = useCallback((chat, sourceMessages = []) => {
+    if (!chat || isSupportChat(chat)) {
+      return null;
+    }
+
+    const otherParticipantId = getOtherParticipantId(chat);
+    const candidateMessages = [
+      ...(Array.isArray(sourceMessages) ? sourceMessages : []),
+      ...(Array.isArray(chat.messages) ? chat.messages : [])
+    ];
+
+    const profileMessage = candidateMessages.find(msg => (
+      msg?.sender &&
+      otherParticipantId &&
+      String(msg.sender_id || msg.sender?.id) === String(otherParticipantId)
+    )) || candidateMessages.find(msg => (
+      msg?.sender &&
+      String(msg.sender_id || msg.sender?.id) !== String(currentUser.id)
+    ));
+
+    if (!profileMessage?.sender) {
+      return null;
+    }
+
+    return {
+      id: profileMessage.sender.id || profileMessage.sender_id,
+      name: profileMessage.sender.name || '',
+      avatar: normalizeAvatarUrl(profileMessage.sender.avatar || profileMessage.sender.image || '')
+    };
+  }, [currentUser.id, getOtherParticipantId, isSupportChat, normalizeAvatarUrl]);
+
   // Get chat name
-  const getChatName = useCallback((chat) => {
+  const getChatName = useCallback((chat, sourceMessages = []) => {
     // إذا كانت محادثة الدعم
     if (isSupportChat(chat)) {
       return 'الدعم الفني';
     }
 
-    const otherParticipants = chat.participants?.filter(p => {
-      const currentSupportId = supportParticipantId || SUPPORT_ID;
-      return String(p) !== String(currentUser.id) && String(p) !== String(currentSupportId);
-    }) || [];
-    
-    if (otherParticipants.length > 0) {
-      const participant = otherParticipants[0];
-      
+    const participantProfile = getChatParticipantProfile(chat, sourceMessages);
+    if (participantProfile?.name) {
+      return participantProfile.name;
+    }
+
+    const participant = getOtherParticipantId(chat);
+
+    if (participant) {
       if (typeof participant === 'number' || /^\d+$/.test(participant)) {
         if (chat.type === "user_driver") {
           return `سائق ${participant}`;
@@ -587,17 +643,21 @@ const playAudioWithIframe = (messageId, url, token) => {
     }
     
     return `الدردشة ${chat.id}`;
-  }, [currentUser.id, isSupportChat, supportParticipantId]);
+  }, [getChatParticipantProfile, getOtherParticipantId, isSupportChat]);
 
   // Get chat avatar
-  const getChatAvatar = useCallback((chat) => {
+  const getChatAvatar = useCallback((chat, sourceMessages = []) => {
     if (isSupportChat(chat)) {
       return <Headset size={20} />;
     }
     
-    const chatName = getChatName(chat);
+    const chatName = getChatName(chat, sourceMessages);
     return chatName.charAt(0);
   }, [getChatName, isSupportChat]);
+
+  const getChatAvatarUrl = useCallback((chat, sourceMessages = []) => {
+    return getChatParticipantProfile(chat, sourceMessages)?.avatar || '';
+  }, [getChatParticipantProfile]);
 
   // Get chat avatar color
   const getChatAvatarColor = useCallback((chat) => {
@@ -2178,8 +2238,10 @@ const renderFileMessage = (message) => {
               ) : (
                 <div className="divide-y divide-gray-100">
                   {filteredChats.map((chat) => {
-                    const chatName = getChatName(chat);
-                    const chatAvatar = getChatAvatar(chat);
+                    const chatMessages = selectedChat?.id === chat.id ? messages : chat.messages;
+                    const chatName = getChatName(chat, chatMessages);
+                    const chatAvatar = getChatAvatar(chat, chatMessages);
+                    const avatarUrl = getChatAvatarUrl(chat, chatMessages);
                     const avatarColor = getChatAvatarColor(chat);
                     const isActive = selectedChat?.id === chat.id;
                     const isSupport = isSupportChat(chat);
@@ -2195,8 +2257,16 @@ const renderFileMessage = (message) => {
                         }`}
                       >
                         <div className="relative flex-shrink-0">
-                          <div className={`w-12 h-12 rounded-full flex items-center justify-center text-white font-semibold text-lg shadow-sm ${avatarColor} ${isActive ? 'ring-2 ring-offset-2 ' + (isSupport ? 'ring-blue-300' : 'ring-blue-300') : ''}`}>
-                            {typeof chatAvatar === 'string' ? chatAvatar : chatAvatar}
+                          <div className={`w-12 h-12 rounded-full flex items-center justify-center text-white font-semibold text-lg shadow-sm overflow-hidden ${avatarColor} ${isActive ? 'ring-2 ring-offset-2 ' + (isSupport ? 'ring-blue-300' : 'ring-blue-300') : ''}`}>
+                            {avatarUrl && !isSupport ? (
+                              <img
+                                src={avatarUrl}
+                                alt={chatName}
+                                className="w-full h-full object-cover"
+                              />
+                            ) : (
+                              typeof chatAvatar === 'string' ? chatAvatar : chatAvatar
+                            )}
                           </div>
                           {(chat.unreadCount || 0) > 0 && !isActive && (
                             <div className="absolute -top-1 -right-1 w-5 h-5 bg-red-500 text-white text-xs rounded-full flex items-center justify-center border-2 border-white shadow-sm">
@@ -2310,17 +2380,25 @@ const renderFileMessage = (message) => {
                   )}
                   
                   <div className="relative flex-shrink-0">
-                    <div className={`w-10 h-10 rounded-full flex items-center justify-center text-white font-semibold shadow-sm ${
+                    <div className={`w-10 h-10 rounded-full flex items-center justify-center text-white font-semibold shadow-sm overflow-hidden ${
                       isSupportChat(selectedChat) ? 'bg-[#579BE8]' : (selectedChat.type === "user_driver" ? 'bg-green-500' : 'bg-[#579BE8]')
                     }`}>
-                      {isSupportChat(selectedChat) ? <Headset size={18} /> : getChatAvatar(selectedChat)}
+                      {getChatAvatarUrl(selectedChat, messages) && !isSupportChat(selectedChat) ? (
+                        <img
+                          src={getChatAvatarUrl(selectedChat, messages)}
+                          alt={getChatName(selectedChat, messages)}
+                          className="w-full h-full object-cover"
+                        />
+                      ) : (
+                        isSupportChat(selectedChat) ? <Headset size={18} /> : getChatAvatar(selectedChat, messages)
+                      )}
                     </div>
                     <div className="absolute bottom-0 right-0 w-2.5 h-2.5 bg-green-500 rounded-full border border-white"></div>
                   </div>
                   
                   <div className="min-w-0 flex-1 overflow-hidden">
                     <h3 className="font-bold text-gray-800 truncate flex items-center gap-2">
-                      {getChatName(selectedChat)}
+                      {getChatName(selectedChat, messages)}
                       {selectedChat.type === "user_driver" && !isSupportChat(selectedChat) && (
                         <span className="text-xs bg-green-100 text-green-700 px-2 py-1 rounded-full whitespace-nowrap">سائق</span>
                       )}
@@ -2340,12 +2418,12 @@ const renderFileMessage = (message) => {
                   >
                     <X size={20} className="text-gray-600 group-hover:text-red-600 transition-colors" />
                   </button>
-                  <button className="hidden sm:flex w-10 h-10 rounded-full hover:bg-gray-100 items-center justify-center transition-colors">
+                  {/* <button className="hidden sm:flex w-10 h-10 rounded-full hover:bg-gray-100 items-center justify-center transition-colors">
                     <Phone size={18} className="text-gray-600" />
-                  </button>
-                  <button className="hidden sm:flex w-10 h-10 rounded-full hover:bg-gray-100 items-center justify-center transition-colors">
+                  </button> */}
+                  {/* <button className="hidden sm:flex w-10 h-10 rounded-full hover:bg-gray-100 items-center justify-center transition-colors">
                     <Info size={18} className="text-gray-600" />
-                  </button>
+                  </button> */}
                 </div>
               </div>
 
@@ -2388,7 +2466,7 @@ const renderFileMessage = (message) => {
                     <h3 className="font-bold text-gray-700 mb-2">
                       {isSupportChat(selectedChat) 
                         ? 'مرحباً بك في الدعم الفني'
-                        : `بداية المحادثة مع ${getChatName(selectedChat)}`}
+                        : `بداية المحادثة مع ${getChatName(selectedChat, messages)}`}
                     </h3>
                     <p className="text-gray-600">
                       {isSupportChat(selectedChat)

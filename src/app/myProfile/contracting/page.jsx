@@ -837,7 +837,7 @@ export default function ContractingPage() {
                                         مثال: 0512345678 أو 5123456789
                                     </p>
                                 </div>
-                                <div className="space-y-1.5 md:space-y-2 relative">
+                                {/* <div className="space-y-1.5 md:space-y-2 relative">
                                     <label className={`${labelClasses} text-xs md:text-sm`}>مدة التعاقد</label>
                                     <div className="relative">
                                         <Select 
@@ -856,11 +856,11 @@ export default function ContractingPage() {
                                             </SelectContent>
                                         </Select>
                                     </div>
-                                </div>
+                                </div> */}
                             </div>
 
                             {/* موقع التوصيل - نفس فكرة OrderForm */}
-                            <div className="space-y-3 md:space-y-4 mb-5">
+                            {/* <div className="space-y-3 md:space-y-4 mb-5">
                                 <div className="flex items-center justify-between">
                                     <label className="flex items-center gap-2 text-foreground/80 font-bold text-xs md:text-sm">
                                         <MapPin className="w-4 h-4 text-[#579BE8]" />
@@ -993,7 +993,7 @@ export default function ContractingPage() {
                                         </p>
                                     </div>
                                 )}
-                            </div>
+                            </div> */}
 
                             <LocationPickerModal
                                 isOpen={isMapOpen}
@@ -1001,7 +1001,7 @@ export default function ContractingPage() {
                                 onSelect={handleManualLocationSelect}
                             />
 
-                            <div className="space-y-1.5 md:space-y-2 relative mb-5">
+                            {/* <div className="space-y-1.5 md:space-y-2 relative mb-5">
                                 <label className={`${labelClasses} text-xs md:text-sm`}>رابط الموقع الإلكتروني</label>
                                 <div className="relative">
                                     <FaGlobe className={`absolute right-3 md:right-4 top-1/2 -translate-y-1/2 text-[#579BE8] w-4 h-4 md:w-5 md:h-5 z-10`} />
@@ -1017,7 +1017,7 @@ export default function ContractingPage() {
                                 {errors.website && <p className="text-[10px] md:text-xs text-red-600 mr-3 md:mr-4 font-bold flex items-center gap-1">
                                     <span>⚠️</span> {errors.website}
                                 </p>}
-                            </div>
+                            </div> */}
 
                             <div className="space-y-1.5 md:space-y-2 relative">
                                 <label className={`${labelClasses} text-xs md:text-sm`}>إضافة ملاحظات إضافية (أو مواقع أخرى)</label>

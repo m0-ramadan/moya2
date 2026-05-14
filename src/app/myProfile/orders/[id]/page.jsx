@@ -19,6 +19,7 @@ import {
   FaSyncAlt,
   FaTimes,
   FaUser,
+  FaWhatsapp,
   FaClosedCaptioning,
 } from "react-icons/fa";
 import {
@@ -884,6 +885,35 @@ export default function OrderDetailsPage() {
         }),
       );
     }
+  };
+
+  const getDriverWhatsappNumber = () => {
+    const rawPhone =
+      orderData?.driver?.user?.phone || orderData?.driver?.phone || "";
+    const digits = rawPhone.replace(/\D/g, "");
+
+    if (!digits) return "";
+    if (digits.startsWith("00")) return digits.slice(2);
+    if (digits.startsWith("0")) return `966${digits.slice(1)}`;
+    if (digits.length === 9 && digits.startsWith("5")) return `966${digits}`;
+
+    return digits;
+  };
+
+  const openWhatsappChat = () => {
+    const whatsappNumber = getDriverWhatsappNumber();
+
+    if (!whatsappNumber) {
+      toast.error("رقم واتساب السائق غير متوفر");
+      return;
+    }
+
+    const message = `مرحباً، بخصوص الطلب رقم ${orderData?.id || orderId}`;
+    window.open(
+      `https://wa.me/${whatsappNumber}?text=${encodeURIComponent(message)}`,
+      "_blank",
+      "noopener,noreferrer",
+    );
   };
 
   // Function to navigate to driver profile page
@@ -1772,6 +1802,14 @@ export default function OrderDetailsPage() {
                         >
                           <FaCommentDots className="w-4 h-4 sm:w-5 sm:h-5 inline ml-1 sm:ml-2" />
                           محادثة مع السائق
+                        </button>
+
+                        <button
+                          onClick={openWhatsappChat}
+                          className="w-full py-2 sm:py-3 rounded-xl text-white font-bold text-sm sm:text-base transition-all hover:scale-[1.02] active:scale-95 bg-gradient-to-r from-[#25D366] to-[#128C7E] shadow-lg hover:shadow-xl flex items-center justify-center gap-2"
+                        >
+                          <FaWhatsapp className="w-4 h-4 sm:w-5 sm:h-5" />
+                          <span>واتساب السائق</span>
                         </button>
 
                         <button
