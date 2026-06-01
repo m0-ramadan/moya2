@@ -9,26 +9,27 @@ import { FaWhatsapp } from 'react-icons/fa';
 const WhatsAppIconSimpleAnimated = () => {
   const [isOpen, setIsOpen] = useState(false);
   const [showWelcome, setShowWelcome] = useState(true);
-  
-  const whatsappNumber = "966500000000";
+
+  const whatsappNumber = "966534561679";
 
   useEffect(() => {
     const timer = setTimeout(() => {
       setShowWelcome(false);
     }, 5000);
-    
+
     return () => clearTimeout(timer);
   }, []);
 
   const handleWhatsAppClick = () => {
-    const url = `https://wa.me/${whatsappNumber}?text=${encodeURIComponent("مرحباً")}`;
+    const defaultMessage = "السلام عليكم، حاب أستفسر عن طلب وايت موية. ممكن تفاصيل الخدمة؟";
+    const url = `https://wa.me/${whatsappNumber}?text=${encodeURIComponent(defaultMessage)}`;
     window.open(url, '_blank');
   };
 
   // متغيرات لأنيميشن متنوعة
   const pulseVariants = {
     initial: { scale: 0.8, opacity: 0.5 },
-    animate: { 
+    animate: {
       scale: [0.8, 1.3, 0.8],
       opacity: [0.5, 0.2, 0.5],
       transition: {
@@ -41,7 +42,7 @@ const WhatsAppIconSimpleAnimated = () => {
 
   const iconVariants = {
     initial: { rotate: 0 },
-    hover: { 
+    hover: {
       rotate: [0, -10, 10, -5, 5, 0],
       transition: { duration: 0.5 }
     },
@@ -50,7 +51,7 @@ const WhatsAppIconSimpleAnimated = () => {
 
   return (
     <div className="fixed bottom-13 left-4 md:left-6 z-50">
-      
+
 
       <div className="relative">
         {/* موجات النبض */}
@@ -60,7 +61,7 @@ const WhatsAppIconSimpleAnimated = () => {
           animate="animate"
           className="absolute inset-0 bg-green-400 rounded-full"
         />
-        
+
         <motion.div
           variants={pulseVariants}
           initial="initial"
@@ -79,11 +80,11 @@ const WhatsAppIconSimpleAnimated = () => {
           className="relative bg-gradient-to-r from-green-500 to-green-600 text-white p-4 rounded-full shadow-xl cursor-pointer"
         >
           <motion.div
-            animate={{ 
+            animate={{
               scale: [1, 1.1, 1],
               rotate: [0, 5, -5, 0]
             }}
-            transition={{ 
+            transition={{
               duration: 3,
               repeat: Infinity,
               ease: "easeInOut"
@@ -92,10 +93,10 @@ const WhatsAppIconSimpleAnimated = () => {
             <FaWhatsapp size={24} />
           </motion.div>
 
-         
+
         </motion.button>
 
-        
+
       </div>
 
       {/* نص متحرك يظهر عند النقر */}
